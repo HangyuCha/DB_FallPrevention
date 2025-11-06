@@ -1,0 +1,68 @@
+<section id="settings" class="py-4">
+  <h3 class="mb-3">Analysis Settings</h3>
+  <div class="card p-3 shadow-sm">
+    <form id="settings-form">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Frame sampling interval</label>
+          <input type="number" min="1" step="1" id="setting-frame-interval" class="form-control" />
+          <div class="form-text">Sampling interval in frames; enter an integer &ge; 1.</div>
+        </div>
+        <div class="col-md-4 d-flex align-items-start">
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="setting-notification-enabled">
+            <label class="form-check-label" for="setting-notification-enabled">Enable notifications</label>
+          </div>
+        </div>
+        <div class="col-12"><hr/></div>
+        <div class="col-md-6">
+          <label class="form-label">Notification option</label>
+          <select id="setting-notification-option" class="form-select">
+            <option value="off">Off</option>
+            <option value="on_high">On high-risk only</option>
+            <option value="always">Always</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Notification threshold</label>
+          <input id="setting-notification-threshold" type="number" min="0" max="1" step="0.01" class="form-control" placeholder="e.g. 0.8" />
+          <div class="form-text">Minimum confidence (0-1) required to trigger a notification.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Notification time limit (minutes)</label>
+          <input id="setting-notification-time-limit" type="number" min="0" step="1" class="form-control" placeholder="0 = no limit" />
+        </div>
+        <div class="col-md-6 d-flex align-items-center">
+          <button id="btn-open-personal-info" type="button" class="btn btn-outline-primary">Edit personal info</button>
+        </div>
+        <div class="col-12 text-end"><small id="settings-save-status" class="text-muted"></small></div>
+      </div>
+    </form>
+
+    <!-- Personal info modal -->
+    <div class="modal fade" id="personalInfoModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Personal Information</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="personal-info-form">
+              <div class="mb-3"><label class="form-label">Name</label><input id="personal-name" class="form-control" /></div>
+              <div class="mb-3"><label class="form-label">Email</label><input id="personal-email" type="email" class="form-control" /></div>
+              <div class="mb-3"><label class="form-label">Date of birth</label><input id="personal-dob" type="date" class="form-control" /></div>
+              <hr />
+              <div class="mb-3"><label class="form-label">Change password</label><input id="personal-password" type="password" class="form-control" /></div>
+              <div class="mb-3"><label class="form-label">Confirm new password</label><input id="personal-password-confirm" type="password" class="form-control" /></div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button id="btn-save-personal-info" type="button" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

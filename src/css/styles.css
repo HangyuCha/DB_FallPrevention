@@ -1,0 +1,164 @@
+/* src/css/styles.css */
+:root{
+  --gradient-start: #6a11cb;
+  --gradient-end: #2575fc;
+  --card-radius: 12px;
+}
+
+/* Unified site font: Noto Sans KR provides a formal, legible Korean+Latin typeface */
+body { font-family: 'Noto Sans KR', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+.navbar.bg-gradient { background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); box-shadow: 0 6px 18px rgba(37,37,37,0.08); }
+.card { border-radius: var(--card-radius); }
+.table > :not(caption) > * > * { vertical-align: middle; }
+
+pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace; font-size: 12px; }
+
+/* hero */
+/* hero */
+#hero { background: linear-gradient(180deg, rgba(38,84,255,0.06), rgba(37,117,252,0.03)); border-radius: 12px; padding: 3.5rem 2rem; margin-bottom: 1rem; }
+.display-5 { color: #0b4bd6; }
+
+/* Hero lead: justified using the unified site font */
+.site-lead { text-align: justify; }
+
+/* Keep the hero title on a single line (no wrapping) per user request.
+   Make it inline-block so the parent text-align:center centers it, and
+   allow wrapping on very small screens for responsiveness. */
+.site-title-nowrap {
+  /* Force a single-line title but scale it responsively so it fits small screens.
+     Uses clamp() to choose a font-size between a min and max based on viewport. */
+  display: inline-block;
+  white-space: nowrap;
+  margin: 0 auto;
+  text-align: center;
+  font-size: clamp(1.25rem, 3.6vw, 2.5rem); /* scales from ~20px to ~40px */
+  line-height: 1.05;
+}
+
+/* If the title still overflows the container, allow a tiny reduction on very narrow screens */
+@media (max-width: 360px) {
+  .site-title-nowrap { font-size: clamp(1rem, 4.5vw, 1.6rem); }
+}
+
+/* Increase spacing between hero title and the lead paragraph for better readability */
+.site-title-nowrap { margin-bottom: 0.85rem; }
+.site-lead { margin-top: 0.85rem; }
+
+/* features */
+#features .card { border: none; }
+
+/* small responsive tweaks */
+@media (max-width: 767px){
+  .navbar .ms-auto { display: none; }
+}
+
+/* subtle glow for primary buttons */
+.btn-primary { box-shadow: 0 6px 18px rgba(99,102,241,0.18); }
+
+/* input focus */
+.form-control:focus, .form-select:focus { box-shadow: 0 0 0 0.18rem rgba(37,117,252,0.12); border-color: #2575fc; }
+
+/* logo image */
+.site-logo { height: 110px; width: auto; border-radius:8px; background: white; padding:8px; }
+
+/* larger logo on wide screens */
+@media (min-width: 1200px){
+  .site-logo { height: 140px; padding:10px; }
+}
+
+/* navbar upload/reset buttons */
+.navbar .btn-outline-light { opacity: 0.95; }
+
+/* search input */
+#search-input { min-width: 220px; max-width: 420px; }
+
+/* table visual improvements */
+table.table th, table.table td { vertical-align: middle; }
+table.table tbody tr:hover { background: rgba(37,117,252,0.03); }
+
+/* card tweaks */
+.card { transition: transform .12s ease, box-shadow .12s ease; }
+.card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(20,30,70,0.06); }
+
+/* Layout specific */
+.site-header { background: linear-gradient(180deg, #f8fbff, #ffffff); border-bottom: 1px solid rgba(20,40,80,0.03); }
+.team-name { color: #1f6feb; font-weight:700; font-family: 'Inter', sans-serif; }
+.topbar { max-width:1100px; }
+.search-mini .form-control { border: 1px solid rgba(34,102,255,0.06); }
+
+.site-sidebar { width: 220px; }
+.site-sidebar .nav-link { color: #333; padding: 10px 14px; border-radius:8px; margin-bottom:6px; }
+.site-sidebar .nav-link.active { background: linear-gradient(90deg, rgba(37,117,252,0.08), rgba(106,17,203,0.03)); color: #0b4bd6; font-weight:600; }
+
+.layout-container { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items:start; }
+.layout-left { position: sticky; top:20px; align-self:start; max-height: calc(100vh - 40px); overflow:auto; padding: 12px; }
+.layout-right { padding-left: 8px; }
+
+/* When no-sidebar mode is active (e.g., Home view), hide the left column and let content fill full width */
+.no-sidebar .layout-container { grid-template-columns: 1fr; }
+.no-sidebar .layout-left { display: none; }
+.no-sidebar .layout-right { padding-left: 0; }
+
+/* Responsive: stack sidebar above content on small screens */
+@media (max-width: 991px){
+  .layout-container { grid-template-columns: 1fr; }
+  .layout-left { position: relative; max-height: none; padding: 8px 0; }
+  .layout-right { padding-left: 0; }
+}
+
+/* page background: use white so footer area appears white */
+body { background: #ffffff; }
+
+/* Make main content fill remaining viewport so footer appears after scroll */
+html, body { height: 100%; }
+.layout-container { min-height: calc(100vh - 120px); }
+.layout-right { display: flex; flex-direction: column; }
+.layout-right main { flex: 1 1 auto; min-height: calc(100vh - 140px); }
+
+/* Ensure the main content background is white so the bottom area isn't shown as pale blue from the body gradient */
+.layout-right { background: #ffffff; }
+.layout-right main { background: transparent; }
+
+/* Keep header bar height fixed; crop any logo overflow at the bottom */
+.site-header { height: 72px; overflow: hidden; }
+.site-header > .container-fluid { height: 100%; padding-top: 0; padding-bottom: 0; display: flex; align-items: center; overflow: hidden; }
+.site-logo { position: relative; top: 0; display: block; }
+
+/* Header navigation and controls: uniform spacing */
+.site-nav { display: flex; gap: 40px; align-items: center; margin-left: 240px; flex: 0 0 auto; }
+.site-nav .nav-link { padding: 6px 8px; color: #334155; font-weight:600; }
+.site-nav .nav-link:hover { color: #0b4bd6; }
+
+.header-controls { display: flex; gap: 24px; align-items: center; margin-left: auto; flex: 0 0 auto; }
+.header-controls .input-group { margin-right: 4px; }
+.header-controls .btn { margin: 0; }
+
+/* small header adjustments */
+.navbar .nav-item .btn { margin-left: 8px; }
+
+/* Page sections: hide all by default and show only the active view (hero visible initially) */
+#hero, #features, #showcase, #data-management, #team, #contact, #dashboard, #videos, #detections, #tags, #settings { display: none; }
+#hero { display: block; }
+
+/* Splash screen styles */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.splash-screen .splash-inner { text-align: center; }
+.splash-logo {
+  /* much larger circular splash logo, responsive */
+  width: min(520px, 80vw);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 0 20px 80px rgba(20,30,70,0.12);
+  object-fit: cover;
+}
+.splash-screen.hidden { opacity: 0; visibility: hidden; transition: opacity 300ms ease-in, visibility 300ms linear; }

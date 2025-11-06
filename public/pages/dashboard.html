@@ -1,0 +1,103 @@
+<section id="dashboard" class="py-4">
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <h3 class="mb-0">Dashboard</h3>
+    <div class="d-flex gap-2">
+      <button id="dash-btn-videos" class="btn btn-sm btn-outline-primary">View Videos</button>
+      <button id="dash-btn-detections" class="btn btn-sm btn-outline-secondary">Detection Details</button>
+      <button id="dash-btn-settings" class="btn btn-sm btn-primary">Analysis Settings</button>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div id="kpi-cards" class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card p-3 shadow-sm text-center">
+        <h6 class="mb-1">Total uploaded videos</h6>
+        <div class="h2" id="kpi-total-videos">—</div>
+        <small class="text-muted">(excluding deleted)</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 shadow-sm text-center">
+        <h6 class="mb-1">This week's fall detections</h6>
+        <div class="h2" id="kpi-week-falls">—</div>
+        <div class="small text-muted">Fall ratio: <span id="kpi-fall-ratio">—</span></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 shadow-sm text-center">
+        <h6 class="mb-1">Unreviewed detections</h6>
+        <div class="h2" id="kpi-unreviewed">—</div>
+        <small class="text-muted">(status = new)</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trend chart -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card p-3 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Fall detections (7-day trend)</strong>
+            <small class="text-muted">daily counts</small>
+          </div>
+          <div style="height:220px">
+            <canvas id="falls-trend-chart" style="max-height:200px"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-body d-flex flex-column flex-md-row gap-3 align-items-center">
+      <div class="d-flex gap-2 align-items-center">
+        <label class="mb-0 small text-muted">Period</label>
+        <select id="dash-filter-period" class="form-select form-select-sm">
+          <option value="week">This week</option>
+          <option value="month">This month</option>
+        </select>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <label class="mb-0 small text-muted">Tag</label>
+        <select id="dash-filter-tag" class="form-select form-select-sm"><option value="">All</option></select>
+      </div>
+      <div class="d-flex gap-2 align-items-center ms-md-auto">
+        <label class="mb-0 small text-muted">User</label>
+        <select id="dash-filter-user" class="form-select form-select-sm"><option value="all">All</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong>Latest fall detections</strong>
+          <small class="text-muted">(latest 5)</small>
+        </div>
+        <div class="card-body p-0">
+          <div id="recent-falls" class="list-group list-group-flush"></div>
+          <div id="recent-falls-empty" class="p-3 text-center text-muted d-none">No fall detections available.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong>Recent uploaded videos</strong>
+          <small class="text-muted">(latest 5)</small>
+        </div>
+        <div class="card-body p-0">
+          <div id="recent-videos" class="list-group list-group-flush"></div>
+          <div id="recent-videos-empty" class="p-3 text-center text-muted d-none">No videos available.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dashboard-error" class="alert alert-warning d-none">Failed to load dashboard data. <button id="dash-retry" class="btn btn-sm btn-outline-primary ms-2">Retry</button></div>
+</section>

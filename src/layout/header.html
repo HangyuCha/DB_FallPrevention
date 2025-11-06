@@ -1,0 +1,61 @@
+<!-- src/layout/header.html -->
+<header class="site-header bg-white shadow-sm position-relative">
+  <style>
+    /* On md+ screens pin the controls to the far right edge and vertically center them.
+       On small screens they remain in normal flow to avoid overlap. */
+    @media (min-width: 768px) {
+      .site-header .header-controls {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        padding-right: 1rem; /* small spacing from edge */
+      }
+      /* center the nav in the header (between logo left and controls right) */
+      .site-header .site-nav {
+        position: absolute;
+        left: 40%;
+        transform: translateX(-50%);
+        gap: 10rem; /* increase spacing between nav items */
+      }
+    }
+  </style>
+  <div class="container-fluid py-2 px-0">
+    <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center gap-3">
+        <a href="#hero" class="d-flex align-items-center text-decoration-none nav-link">
+          <!-- Left-top text removed per request; show a compact logo image instead -->
+         <img id="site-logo" class="site-logo" src="/assets/logo.png" alt="logo" />
+        </a>
+      </div>
+
+      <!-- main nav centered in the header on md+ -->
+      <nav class="site-nav d-none d-md-flex align-items-center mx-auto">
+        <a class="nav-link" href="#hero">Home</a>
+        <a class="nav-link" href="#dashboard">Dashboard</a>
+        <a class="nav-link" href="#contact">Contact</a>
+      </nav>
+
+    <!-- header controls aligned to the far right -->
+    <div class="header-controls d-flex align-items-center ms-auto gap-2">
+        <div class="input-group search-mini d-none d-md-flex">
+          <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+          <input id="global-search" class="form-control form-control-sm" placeholder="Search (all)" />
+        </div>
+
+        <button id="btn-notify" class="btn btn-outline-primary btn-sm position-relative d-none d-md-inline-flex">
+          <i class="bi bi-bell"></i>
+          <span id="notify-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:10px;">0</span>
+        </button>
+
+        <input id="logo-input" type="file" accept="image/*" class="d-none" />
+        <button id="btn-upload-logo" class="btn btn-outline-secondary btn-sm" title="Upload logo"><i class="bi bi-upload"></i></button>
+        <button id="btn-reset-logo" class="btn btn-outline-secondary btn-sm" title="Reset logo"><i class="bi bi-arrow-counterclockwise"></i></button>
+
+        <div id="nav-user" class="small text-muted"></div>
+        <button id="btn-login-open" class="btn btn-primary btn-sm">Login</button>
+        <button id="btn-logout" class="btn btn-outline-secondary btn-sm d-none">Logout</button>
+      </div>
+    </div>
+  </div>
+</header>

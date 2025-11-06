@@ -1,0 +1,24 @@
+:root{
+  --gradient-start: #6a11cb;
+  --gradient-end: #2575fc;
+  --card-radius: 12px;
+  --glass: rgba(255,255,255,0.7);
+}
+
+body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+.navbar.bg-gradient { background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); box-shadow: 0 6px 18px rgba(37,37,37,0.08); }
+.card { border-radius: var(--card-radius); }
+.table > :not(caption) > * > * { vertical-align: middle; }
+
+pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace; font-size: 12px; }
+
+/* small responsive tweaks */
+@media (max-width: 767px){
+  .navbar .ms-auto { display: none; }
+}
+
+/* subtle glow for primary buttons */
+.btn-primary { box-shadow: 0 6px 18px rgba(99,102,241,0.18); }
+
+/* input focus */
+.form-control:focus, .form-select:focus { box-shadow: 0 0 0 0.18rem rgba(37,117,252,0.12); border-color: #2575fc; }
