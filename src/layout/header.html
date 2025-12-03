@@ -59,3 +59,62 @@
     </div>
   </div>
 </header>
+
+  <!-- Auth Modals injected with header so they are always available -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">로그인</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <form id="modal-login-form">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="modal-login-username" class="form-label">아이디</label>
+              <input id="modal-login-username" type="text" class="form-control" required />
+            </div>
+            <div class="mb-3">
+              <label for="modal-login-password" class="form-label">비밀번호</label>
+              <input id="modal-login-password" type="password" class="form-control" required />
+            </div>
+          </div>
+          <div class="modal-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
+            <div class="d-flex gap-2">
+              <button id="modal-open-register" type="button" class="btn btn-outline-primary">회원가입</button>
+              <button type="submit" class="btn btn-primary">로그인</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    </div>
+
+  <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">회원가입</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <form id="modal-register-form">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="modal-reg-username" class="form-label">아이디</label>
+              <input id="modal-reg-username" type="text" class="form-control" required />
+            </div>
+            <div class="mb-3">
+              <label for="modal-reg-password" class="form-label">비밀번호</label>
+              <input id="modal-reg-password" type="password" class="form-control" required />
+            </div>
+            <div class="mb-3">
+              <label for="modal-reg-birth" class="form-label">생년월일</label>
+              <input id="modal-reg-birth" type="text" class="form-control" placeholder="1990-01-01" />
+            </div>
+          </div>
+          <div class="modal-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
+            <div class="d-flex gap-2">
+              <button id="modal-open-login" type="button" class="btn btn-outline-primary">로그인으로</button>
+              <button type="submit" class="btn btn-success">가입</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>

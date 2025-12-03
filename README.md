@@ -87,6 +87,36 @@ UI 설명
 
 문제가 생기면 터미널 출력(오류 메시지)을 붙여서 알려 주세요.
 
-## 백엔드 연동 계획
+## 백엔드 연동 (Flask)
 
-앞으로 실제 백엔드에 연결할 경우 사용하게 될 ER 다이어그램(첨부)을 기반으로 간단한 API 설계 문서를 `docs/backend.md`에 추가했습니다. 백엔드 스캐폴딩(Express/SQLite 등)을 원하시면 스택을 알려주시면 바로 생성해 드립니다.
+동일 워크스페이스의 `DB repository/db-project-fall-detection` Flask 서버와 기본 연동이 되어 있습니다. 개발 모드에서는 Vite 프록시가 `/api` 요청을 `http://localhost:5000`으로 전달합니다.
+
+- 프록시 설정: `vite.config.js`
+- 프론트 API 클라이언트: `src/js/api.js`
+- 백엔드 API 엔드포인트(Flask):
+   - `GET /api/health` — 상태 확인
+   - `GET /api/media` — Firebase Storage의 동영상/이미지 목록(+ 서명 URL)
+   - `GET /api/streams` — 가용한 실시간 스트림 경로 목록(`/video_stream{카메라}_{종류}`)
+   - `GET /api/detections` — 최근 감지 이벤트(감지 노드가 없으면 `event` 노드 기준 단순 매핑)
+
+프론트는 백엔드 연결이 실패해도 동작하도록 설계되었고, 연결 가능 시 자동으로 원격 데이터를 가져와 `localStorage` 캐시를 갱신합니다.
+
+### 실행 순서
+
+1) 백엔드(Flask) 실행
+
+```bash
+cd "/Users/hangyu/Desktop/홍익대/3학년 2학기/세종/DB/DB repository/db-project-fall-detection"
+pip install -r requirements.txt
+python app.py
+```
+
+2) 프론트엔드(Vite) 실행
+
+```bash
+cd "/Users/hangyu/Desktop/홍익대/3학년 2학기/세종/DB/DB 프로젝트"
+npm install
+npm run dev
+```
+
+브라우저에서 `http://localhost:5173` 접속 후, 대시보드/비디오/탐지 화면이 백엔드 데이터로 점차 갱신됩니다(최대 60초 간격 자동 동기화). 실시간 스트림은 `GET /api/streams`로 받은 각 경로(`/video_stream...`)를 `<img>`/`<video>`로 직접 열어 확인할 수 있습니다.

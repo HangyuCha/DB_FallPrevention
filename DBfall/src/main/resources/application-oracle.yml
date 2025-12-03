@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@<HOST>:<PORT>/<SERVICE_NAME>
+    username: <USERNAME>
+    password: <PASSWORD>
+    driver-class-name: oracle.jdbc.OracleDriver
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+
+flyway:
+  enabled: true
+  locations: classpath:db/migration
+
+app:
+  jwt-secret: change-this-secret-in-prod-rotate-regularly-32plus
+  jwt-expiration-ms: 86400000

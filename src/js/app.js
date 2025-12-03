@@ -1,5 +1,6 @@
 // src/js/app.js
 import { loadPage } from './pages-loader.js';
+import { api, authApi } from './api.js';
 // Complete, cleaned client script: datastore, UI, layout hooks
 // Toggle developer debug overlay. Set to false to disable the bottom-right dev-debug box.
 const SHOW_DEV_DEBUG = false;
@@ -57,7 +58,6 @@ function getVideos(){
     const raw = localStorage.getItem(VIDEOS_KEY);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  // initialize from sample
   try{ localStorage.setItem(VIDEOS_KEY, JSON.stringify(SAMPLE_VIDEOS)); }catch(e){}
   return SAMPLE_VIDEOS.slice();
 }
@@ -68,6 +68,50 @@ function getDetections(){
   }catch(e){}
   try{ localStorage.setItem(DETECTIONS_KEY, JSON.stringify(SAMPLE_DETECTIONS)); }catch(e){}
   return SAMPLE_DETECTIONS.slice();
+}
+
+// Background sync from backend API (if available). Non-blocking – UI falls back to local data.
+async function syncRemoteData(){
+  try{
+    // Videos from /api/media (video files only)
+    try{
+      const media = await api.listMedia();
+      const videos = (media||[]).filter(f=>{
+        const ct = (f.contentType||'').toLowerCase();
+        const nm = (f.name||'').toLowerCase();
+        return (ct.startsWith('video/') || nm.endsWith('.mp4') || nm.endsWith('.webm') || nm.endsWith('.mov') || nm.endsWith('.mkv'));
+      }).map(f=>({
+        id: f.id || f.path || f.name,
+        name: f.name,
+        size: f.size,
+        sizeText: typeof f.size==='number' ? humanSize(f.size) : (f.size||'') ,
+        src: f.url,
+        uploadDate: new Date().toISOString()
+      }));
+      if(videos.length){ localStorage.setItem(VIDEOS_KEY, JSON.stringify(videos)); }
+    }catch(e){ /* ignore to keep UI responsive */ }
+
+    // Detections from /api/detections
+    try{
+      const dets = await api.listDetections();
+      const mapped = (dets||[]).map(d=>({
+        id: d.id || Math.random().toString(36).slice(2,9),
+        video: d.video || '',
+        score: typeof d.score==='number' ? d.score : 0,
+        time: d.time || new Date().toISOString(),
+        frame: d.frame || '',
+        type: d.type || '',
+        fall: (String(d.type||'').toLowerCase().includes('fall') || d.fall===true)
+      }));
+      if(mapped.length){ localStorage.setItem(DETECTIONS_KEY, JSON.stringify(mapped)); }
+    }catch(e){ /* ignore */ }
+
+    // Soft refresh currently visible view if relevant nodes exist
+    const hash = (window.location.hash||'').replace('#','');
+    if(hash==='dashboard') renderDashboard();
+    if(hash==='videos') renderVideos();
+    if(hash==='detections') renderDetections();
+  }catch(e){ /* swallow */ }
 }
 
 // Chart instance for the falls trend
@@ -147,18 +191,25 @@ const modalTitle = document.getElementById('modal-title');
 const recordForm = document.getElementById('record-form');
 const btnSave = document.getElementById('btn-save');
 const btnDelete = document.getElementById('btn-delete');
-const loginModalEl = document.getElementById('loginModal');
-const loginModal = loginModalEl ? new bootstrap.Modal(loginModalEl) : null;
-const btnLoginOpen = document.getElementById('btn-login-open');
-const btnLogout = document.getElementById('btn-logout');
-const loginForm = document.getElementById('login-form');
-const loginNameInput = document.getElementById('login-name');
+let loginModal = null;
+let registerModal = null;
+let btnLoginOpen = null;
+let btnLogout = null;
+let loginForm = null;
+let loginUserInput = null;
+let loginPassInput = null;
+let registerForm = null;
+let regUserInput = null;
+let regPassInput = null;
+let regBirthInput = null;
+let modalOpenRegisterBtn = null;
+let modalOpenLoginBtn = null;
 const navUser = document.getElementById('nav-user');
 const heroSection = document.getElementById('hero-section');
 
 // View manager: show/hide main sections so the site behaves like a homepage with navigable views
-const VIEW_IDS = ['hero','features','showcase','data-management','team','contact','dashboard','videos','detections','tags','settings'];
-const PAGE_FRAGMENTS = new Set(['dashboard','videos','detections','features','tags','settings','contact']);
+const VIEW_IDS = ['hero','features','showcase','data-management','team','contact','dashboard','videos','detections','tags','settings','auth'];
+const PAGE_FRAGMENTS = new Set(['dashboard','videos','detections','features','tags','settings','contact','auth']);
 // Inline fallback template for dashboard (used to force-inject when fragment loading fails)
 const DASHBOARD_TEMPLATE = `
 <section id="dashboard" class="py-4">
@@ -234,6 +285,7 @@ async function showView(id){
     if(id==='data-management') renderTable();
     if(id==='tags') renderTags();
     if(id==='contact') renderContact();
+    if(id==='auth') renderAuthPage();
   }catch(e){ console.error('view render error', e); }
 }
 
@@ -244,6 +296,23 @@ function onFragmentsLoaded(){
   globalSearch = document.getElementById('global-search');
   notifyBadge = document.getElementById('notify-badge');
   btnNotify = document.getElementById('btn-notify');
+
+  // Requery modal and buttons after fragments injection (DOM replaced)
+  const loginModalEl = document.getElementById('loginModal');
+  loginModal = loginModalEl ? new bootstrap.Modal(loginModalEl) : null;
+  const registerModalEl = document.getElementById('registerModal');
+  registerModal = registerModalEl ? new bootstrap.Modal(registerModalEl) : null;
+  btnLoginOpen = document.getElementById('btn-login-open');
+  btnLogout = document.getElementById('btn-logout');
+  loginForm = document.getElementById('modal-login-form');
+  loginUserInput = document.getElementById('modal-login-username');
+  loginPassInput = document.getElementById('modal-login-password');
+  registerForm = document.getElementById('modal-register-form');
+  regUserInput = document.getElementById('modal-reg-username');
+  regPassInput = document.getElementById('modal-reg-password');
+  regBirthInput = document.getElementById('modal-reg-birth');
+  modalOpenRegisterBtn = document.getElementById('modal-open-register');
+  modalOpenLoginBtn = document.getElementById('modal-open-login');
 
   const header = document.getElementById('layout-header');
   if(header){
@@ -267,7 +336,59 @@ function onFragmentsLoaded(){
   if(globalSearch){ globalSearch.addEventListener('input', (e)=>{ const v = e.target.value || ''; if(searchInput) { searchInput.value = v; renderTable(); } }); }
   if(btnNotify){ btnNotify.addEventListener('click', ()=>{ alert('미처리 탐지: ' + (notifyBadge ? notifyBadge.textContent : '0') + '건'); }); }
 
+  // Bind auth controls once (idempotent guards)
+  if(btnLoginOpen && !btnLoginOpen.__bound){ btnLoginOpen.__bound = true; btnLoginOpen.addEventListener('click', ()=> loginModal?.show()); }
+  if(btnLogout && !btnLogout.__bound){ btnLogout.__bound = true; btnLogout.addEventListener('click', ()=>{ setCurrentUser(null); renderAuth(); }); }
+  if(loginForm && !loginForm.__bound){
+    loginForm.__bound = true;
+    loginForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const username = (loginUserInput?.value || '').trim();
+      const password = loginPassInput?.value || '';
+      if(!username || !password){ showToast('아이디/비밀번호를 입력하세요', 'danger'); return; }
+      try{
+        showSpinner(true);
+        const res = await authApi.login({ username, password });
+        const token = res?.token; const user = res?.user || { username };
+        if(!token) throw new Error('토큰 없음');
+        localStorage.setItem('auth_token', token);
+        setCurrentUser({ name: user.username || username, loggedAt: Date.now() });
+        showToast('로그인 성공', 'success');
+        loginModal?.hide();
+        renderAuth();
+        history.pushState({}, '', '#dashboard');
+        await showView('dashboard');
+      }catch(err){ console.error('login failed', err); showToast('로그인 실패', 'danger'); }
+      finally{ showSpinner(false); }
+    });
+  }
+  if(registerForm && !registerForm.__bound){
+    registerForm.__bound = true;
+    registerForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const username = (regUserInput?.value || '').trim();
+      const password = regPassInput?.value || '';
+      const birthDate = regBirthInput?.value || '';
+      if(!username || !password){ showToast('아이디/비밀번호를 입력하세요', 'danger'); return; }
+      try{
+        showSpinner(true);
+        await authApi.register({ username, password, birthDate });
+        showToast('회원가입 완료. 로그인해주세요.', 'success');
+        registerModal?.hide();
+        loginModal?.show();
+      }catch(err){ console.error('register failed', err); showToast('회원가입 실패', 'danger'); }
+      finally{ showSpinner(false); }
+    });
+  }
+  if(modalOpenRegisterBtn && !modalOpenRegisterBtn.__bound){ modalOpenRegisterBtn.__bound = true; modalOpenRegisterBtn.addEventListener('click', ()=>{ loginModal?.hide(); registerModal?.show(); }); }
+  if(modalOpenLoginBtn && !modalOpenLoginBtn.__bound){ modalOpenLoginBtn.__bound = true; modalOpenLoginBtn.addEventListener('click', ()=>{ registerModal?.hide(); loginModal?.show(); }); }
+
   applyInitialView();
+
+  // Try to pull latest data from backend (non-blocking)
+  syncRemoteData();
+  // Optional: periodic refresh (lightweight)
+  try{ if(!window.__remoteSyncInterval){ window.__remoteSyncInterval = setInterval(syncRemoteData, 60000); } }catch(e){}
 }
 
 // Remove duplicate elements with the same id for `hero` (defensive fix).
@@ -365,6 +486,7 @@ document.addEventListener('page-loaded', (ev)=>{
     if(id==='tags') typeof renderTags === 'function' && renderTags();
     if(id==='settings') typeof renderSettings === 'function' && renderSettings();
     if(id==='contact') typeof renderContact === 'function' && renderContact();
+    if(id==='auth') typeof renderAuthPage === 'function' && renderAuthPage();
   }catch(err){ console.error('page-loaded handler error', err); }
 });
 
@@ -524,9 +646,120 @@ function renderAuth(){
   if(notifyBadge) notifyBadge.textContent = String(Math.floor(Math.random()*3));
 }
 
+// Auth page renderer: wires login/register to backend
+function renderAuthPage(){
+  try{
+    const page = document.getElementById('auth'); if(!page) return;
+    // Elements
+    const loginFormEl = document.getElementById('login-form');
+    const loginUserEl = document.getElementById('auth-username');
+    const loginPassEl = document.getElementById('auth-password');
+    const regToggleBtn = document.getElementById('btn-register');
+    const regFormEl = document.getElementById('register-form');
+    const regUserEl = document.getElementById('reg-username');
+    const regPassEl = document.getElementById('reg-password');
+    const regBirthEl = document.getElementById('reg-birth');
+    const regCancelBtn = document.getElementById('btn-register-cancel');
+
+    // Bind once
+    if(loginFormEl && !loginFormEl.__bound){
+      loginFormEl.__bound = true;
+      loginFormEl.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const username = (loginUserEl?.value || '').trim();
+        const password = loginPassEl?.value || '';
+        if(!username || !password){ showToast('아이디/비밀번호를 입력하세요', 'danger'); return; }
+        try{
+          showSpinner(true);
+          const res = await authApi.login({ username, password });
+          const token = res?.token; const user = res?.user || { name: username };
+          if(!token){ throw new Error('토큰 없음'); }
+          localStorage.setItem('auth_token', token);
+          setCurrentUser({ name: user.username || user.name || username, loggedAt: Date.now() });
+          showToast('로그인 성공', 'success');
+          renderAuth();
+          history.pushState({}, '', '#dashboard');
+          await showView('dashboard');
+        }catch(err){ console.error('login failed', err); showToast('로그인 실패', 'danger'); }
+        finally{ showSpinner(false); }
+      });
+    }
+
+    if(regToggleBtn && !regToggleBtn.__bound){
+      regToggleBtn.__bound = true;
+      regToggleBtn.addEventListener('click', ()=>{
+          if(regFormEl){ regFormEl.classList.toggle('d-none'); }
+      });
+    }
+
+    if(regFormEl && !regFormEl.__bound){
+      regFormEl.__bound = true;
+      regFormEl.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const username = (regUserEl?.value || '').trim();
+        const password = regPassEl?.value || '';
+        const birthDate = regBirthEl?.value || '';
+        if(!username || !password){ showToast('아이디/비밀번호를 입력하세요', 'danger'); return; }
+        try{
+          showSpinner(true);
+          await authApi.register({ username, password, birthDate });
+          showToast('회원가입 완료. 로그인해주세요.', 'success');
+          // switch back to login box
+          regFormEl && regFormEl.classList.add('d-none');
+        }catch(err){ console.error('register failed', err); showToast('회원가입 실패', 'danger'); }
+        finally{ showSpinner(false); }
+      });
+    }
+
+    if(regCancelBtn && !regCancelBtn.__bound){
+      regCancelBtn.__bound = true;
+      regCancelBtn.addEventListener('click', ()=>{ regFormEl && regFormEl.classList.add('d-none'); });
+    }
+
+  }catch(e){ console.error('renderAuthPage failed', e); }
+}
+
 btnLoginOpen?.addEventListener('click', ()=> loginModal?.show());
 btnLogout?.addEventListener('click', ()=>{ setCurrentUser(null); renderAuth(); });
-loginForm?.addEventListener('submit', (e)=>{ e.preventDefault(); const name = loginNameInput.value.trim(); if(!name) return alert('Please enter a name'); setCurrentUser({name, loggedAt: Date.now()}); loginModal?.hide(); renderAuth(); });
+loginForm?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const username = (loginUserInput?.value || '').trim();
+  const password = loginPassInput?.value || '';
+  if(!username || !password){ showToast('아이디/비밀번호를 입력하세요', 'danger'); return; }
+  try{
+    showSpinner(true);
+    const res = await authApi.login({ username, password });
+    const token = res?.token; const user = res?.user || { username };
+    if(!token) throw new Error('토큰 없음');
+    localStorage.setItem('auth_token', token);
+    setCurrentUser({ name: user.username || username, loggedAt: Date.now() });
+    showToast('로그인 성공', 'success');
+    loginModal?.hide();
+    renderAuth();
+    history.pushState({}, '', '#dashboard');
+    await showView('dashboard');
+  }catch(err){ console.error('login failed', err); showToast('로그인 실패', 'danger'); }
+  finally{ showSpinner(false); }
+});
+
+registerForm?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const username = (regUserInput?.value || '').trim();
+  const password = regPassInput?.value || '';
+  const birthDate = regBirthInput?.value || '';
+  if(!username || !password){ showToast('아이디/비밀번호를 입력하세요', 'danger'); return; }
+  try{
+    showSpinner(true);
+    await authApi.register({ username, password, birthDate });
+    showToast('회원가입 완료. 로그인해주세요.', 'success');
+    registerModal?.hide();
+    loginModal?.show();
+  }catch(err){ console.error('register failed', err); showToast('회원가입 실패', 'danger'); }
+  finally{ showSpinner(false); }
+});
+
+modalOpenRegisterBtn?.addEventListener('click', ()=>{ loginModal?.hide(); registerModal?.show(); });
+modalOpenLoginBtn?.addEventListener('click', ()=>{ registerModal?.hide(); loginModal?.show(); });
 
 function renderTable(rows=null){
   const data = rows || store.all();
@@ -595,8 +828,11 @@ async function addOrUpdateVideoFromForm(){
     reader.onload = function(e){
       try{
         const dataUrl = e.target.result;
-        const obj = { id: Math.random().toString(36).slice(2,9), name: title || file.name, size: file.size, sizeText: humanSize(file.size), src: dataUrl, uploadDate: new Date().toISOString(), desc };
+        const nowIso = new Date().toISOString();
+        const obj = { id: Math.random().toString(36).slice(2,9), name: title || file.name, size: file.size, sizeText: humanSize(file.size), src: dataUrl, uploadDate: nowIso, desc };
         videos.unshift(obj); saveVideosToStorage(videos); renderVideos(); const bs = bootstrap.Modal.getInstance(document.getElementById('uploadVideoModal')); bs && bs.hide(); resolve(true);
+        // Try to persist metadata to backend DB (best-effort)
+        api.saveVideoMeta({ name: obj.name, size: obj.size, url: obj.src, uploaded_at: nowIso }).catch(()=>{});
       }catch(er){ console.error('file read error', er); reject(er); }
     };
     reader.onerror = function(err){ console.error('file read error', err); reject(err); };
@@ -883,6 +1119,18 @@ function renderDashboard(){
 
   // retry handler
   document.getElementById('dash-retry')?.addEventListener('click', ()=> renderDashboard());
+
+    // Update DB KPIs from backend (best-effort)
+    (async()=>{
+      try{
+        const [dbVideos, dbDets] = await Promise.all([
+          api.listVideos().catch(()=>[]),
+          api.listDetections().catch(()=>[])
+        ]);
+        const vEl = document.getElementById('kpi-db-videos'); if(vEl) vEl.textContent = String(Array.isArray(dbVideos)? dbVideos.length: 0);
+        const dEl = document.getElementById('kpi-db-detections'); if(dEl) dEl.textContent = String(Array.isArray(dbDets)? dbDets.length: 0);
+      }catch(e){ /* ignore */ }
+    })();
 
   }catch(err){ console.error('dashboard render error', err); document.getElementById('dashboard-error')?.classList.remove('d-none'); }
 }

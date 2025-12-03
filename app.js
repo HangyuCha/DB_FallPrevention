@@ -340,3 +340,85 @@ renderTable();
 
 // expose store for debugging
 window.__store = store;
+
+// --- Auth wiring (register/login) ---
+const apiBase = 'http://localhost:8080/api';
+
+async function registerUser({ username, password, birthDate }){
+  const res = await fetch(`${apiBase}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, birthDate })
+  });
+  if(!res.ok) throw new Error(res.status);
+  return res.json();
+}
+
+async function loginUser({ username, password }){
+  const res = await fetch(`${apiBase}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  if(!res.ok) throw new Error(res.status);
+  return res.json();
+}
+
+function showToast(msg){
+  try{
+    const el = document.getElementById('app-toast');
+    if(el){ el.textContent = msg; el.classList.remove('d-none'); setTimeout(()=> el.classList.add('d-none'), 2500); }
+    else alert(msg);
+  }catch{ alert(msg); }
+}
+
+// Bind register modal if present
+const regForm = document.getElementById('register-form');
+if(regForm){
+  regForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const username = document.getElementById('register-username')?.value?.trim();
+    const password = document.getElementById('register-password')?.value || '';
+    const birthDate = document.getElementById('register-birthdate')?.value || '';
+    try{
+      const data = await registerUser({ username, password, birthDate });
+      // save token/user if provided
+      if(data?.token) localStorage.setItem('token', data.token);
+      if(data?.user) localStorage.setItem('user', JSON.stringify(data.user));
+      showToast('회원가입 성공');
+      // close modal if using bootstrap
+      const mEl = document.getElementById('registerModal');
+      if(mEl){
+        const modal = bootstrap.Modal.getInstance(mEl) || new bootstrap.Modal(mEl);
+        modal.hide();
+      }
+    }catch(err){
+      console.error('register failed', err);
+      showToast('회원가입 실패');
+    }
+  });
+}
+
+// Bind login modal if present
+const loginForm = document.getElementById('login-form');
+if(loginForm){
+  loginForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const username = document.getElementById('login-username')?.value?.trim();
+    const password = document.getElementById('login-password')?.value || '';
+    try{
+      const data = await loginUser({ username, password });
+      if(data?.token) localStorage.setItem('token', data.token);
+      if(data?.user) localStorage.setItem('user', JSON.stringify(data.user));
+      showToast('로그인 성공');
+      const mEl = document.getElementById('loginModal');
+      if(mEl){
+        const modal = bootstrap.Modal.getInstance(mEl) || new bootstrap.Modal(mEl);
+        modal.hide();
+      }
+    }catch(err){
+      console.error('login failed', err);
+      showToast('로그인 실패');
+    }
+  });
+}
