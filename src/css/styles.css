@@ -11,6 +11,13 @@ body { font-family: 'Noto Sans KR', 'Inter', system-ui, -apple-system, 'Segoe UI
 .card { border-radius: var(--card-radius); }
 .table > :not(caption) > * > * { vertical-align: middle; }
 
+/* Hide legacy dashboard action buttons if stale fragments still include them */
+#dash-btn-videos,
+#dash-btn-detections,
+#dash-btn-settings {
+  display: none !important;
+}
+
 pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace; font-size: 12px; }
 
 /* hero */
@@ -137,7 +144,7 @@ html, body { height: 100%; }
 .navbar .nav-item .btn { margin-left: 8px; }
 
 /* Page sections: hide all by default and show only the active view (hero visible initially) */
-#hero, #features, #showcase, #data-management, #team, #contact, #dashboard, #videos, #detections, #tags, #settings { display: none; }
+#hero, #features, #showcase, #data-management, #team, #contact, #videos, #detections, #tags, #settings { display: none; }
 #hero { display: block; }
 
 /* Splash screen styles */

@@ -9,14 +9,26 @@ function withTimeout(ms, promise){
 }
 
 function inferBase(){
-  // Force local Spring Boot backend to avoid accidental calls to school server.
+  const base = import.meta?.env?.VITE_API_BASE?.trim();
+  if(base) return base.replace(/\/$/, '') + '/api';
   return 'http://localhost:8080/api';
+}
+
+function getAuthToken(){
+  return localStorage.getItem('auth_token');
+}
+
+export function getApiBase(){
+  return inferBase();
 }
 
 async function getJson(path){
   const base = inferBase();
   const url = `${base}${path}`;
-  const res = await withTimeout(DEFAULT_TIMEOUT, fetch(url, { credentials: 'omit' }));
+  const token = getAuthToken();
+  const headers = token ? { 'Authorization': `Bearer ${token}` } : undefined;
+  const res = await withTimeout(DEFAULT_TIMEOUT, fetch(url, { headers, credentials: 'omit' }));
+  if(res.status === 401) throw new Error('401');
   if(!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
 }
@@ -27,7 +39,7 @@ export const api = {
   },
   async listMedia(){
     // Protected API: skip if not authenticated to avoid 403 noise
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     if(!token) return [];
     const base = inferBase();
     const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/media`, {
@@ -38,7 +50,7 @@ export const api = {
     return Array.isArray(json.files) ? json.files : [];
   },
   async listVideos(){
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     if(!token) return [];
     const base = inferBase();
     const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/videos`, {
@@ -46,10 +58,10 @@ export const api = {
     }));
     if(!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     const json = await res.json();
-    return Array.isArray(json.videos) ? json.videos : [];
+    return Array.isArray(json) ? json : [];
   },
   async listStreams(){
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     if(!token) return [];
     const base = inferBase();
     const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/streams`, {
@@ -60,7 +72,7 @@ export const api = {
     return Array.isArray(json.streams) ? json.streams : [];
   },
   async listDetections(){
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     if(!token) return [];
     const base = inferBase();
     const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/detections`, {
@@ -70,18 +82,86 @@ export const api = {
     const json = await res.json();
     return Array.isArray(json.detections) ? json.detections : [];
   },
-  async saveVideoMeta(meta){
+  async getAnalysisSettings(){
+    const token = getAuthToken();
+    if(!token) throw new Error('not authenticated');
     const base = inferBase();
-    const token = localStorage.getItem('token');
-    const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/videos`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(meta)
+    const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/settings/analysis`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }));
+    if(res.status === 404) return null;
+    if(!res.ok) throw new Error(`${res.status}`);
+    return res.json();
+  },
+  async saveAnalysisSettings(payload){
+    const token = getAuthToken();
+    if(!token) throw new Error('not authenticated');
+    const base = inferBase();
+    const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/settings/analysis`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload)
     }));
     if(!res.ok) throw new Error(`${res.status}`);
     return res.json();
   },
+  async deleteAccount(){
+    const token = getAuthToken();
+    if(!token) throw new Error('not authenticated');
+    const base = inferBase();
+    const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/auth/me`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    }));
+    if(res.status !== 204) throw new Error(`${res.status}`);
+    return true;
+  },
+  async saveVideoMeta(meta){
+    console.warn('saveVideoMeta is deprecated. Use uploadVideo instead.');
+    return Promise.reject(new Error('saveVideoMeta deprecated'));
+  },
+  async uploadVideo({ file, title, description }){
+    const token = getAuthToken();
+    if(!token) throw new Error('not authenticated');
+    const base = inferBase();
+    const form = new FormData();
+    form.append('file', file);
+    if(title) form.append('title', title);
+    if(description) form.append('description', description);
+    const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/videos`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: form
+    }));
+    if(!res.ok) throw new Error(`${res.status}`);
+    return res.json();
+  },
+  async updateVideo(id, { title, description }){
+    const token = getAuthToken();
+    if(!token) throw new Error('not authenticated');
+    const base = inferBase();
+    const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/videos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ title, description })
+    }));
+    if(!res.ok) throw new Error(`${res.status}`);
+    return res.json();
+  },
+  async deleteVideo(id){
+    const token = getAuthToken();
+    if(!token) throw new Error('not authenticated');
+    const base = inferBase();
+    const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/videos/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    }));
+    if(!res.ok) throw new Error(`${res.status}`);
+    return true;
+  },
   async saveDetection(row){
     const base = inferBase();
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     const res = await withTimeout(DEFAULT_TIMEOUT, fetch(`${base}/detections`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(row)
     }));

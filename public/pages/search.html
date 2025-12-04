@@ -1,0 +1,33 @@
+<section id="search" class="py-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+    <div>
+      <h3 class="mb-1">Search Videos</h3>
+      <p class="text-muted mb-0">Find a video by title, description, or filename and manage it from one place.</p>
+    </div>
+    <button id="btn-open-upload-search" class="btn btn-primary">Upload New Video</button>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-8">
+          <label for="video-search-input" class="form-label">Search term</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="video-search-input" class="form-control" placeholder="Type title, description, or filename" />
+            <button id="video-search-clear" class="btn btn-outline-secondary" type="button">Clear</button>
+          </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <div class="text-muted small">Matches</div>
+          <div class="display-6 mb-0" id="video-search-count">0</div>
+          <div class="small text-muted">Use edit/delete buttons below.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="video-search-results" class="row g-3">
+    <!-- search results injected here -->
+  </div>
+</section>

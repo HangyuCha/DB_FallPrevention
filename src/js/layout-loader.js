@@ -17,6 +17,8 @@ async function loadFragment(selector, url){
             <a class="navbar-brand" href="#hero">Fall Prevention</a>
             <div class="ms-auto d-flex align-items-center gap-2">
               <a class="nav-link" href="#dashboard">Dashboard</a>
+              <a class="nav-link" href="#data-management">Data Management</a>
+              <a class="nav-link" href="#search">Search</a>
               <a class="nav-link" href="#videos">Videos</a>
               <a class="nav-link" href="#detections">Detections</a>
               <a class="nav-link" href="#settings">Settings</a>
@@ -30,6 +32,8 @@ async function loadFragment(selector, url){
         el.innerHTML = `
           <div class="list-group" id="fallback-sidebar">
             <a href="#dashboard" class="list-group-item list-group-item-action nav-link">Dashboard</a>
+            <a href="#data-management" class="list-group-item list-group-item-action nav-link">Data Management</a>
+            <a href="#search" class="list-group-item list-group-item-action nav-link">Search</a>
             <a href="#videos" class="list-group-item list-group-item-action nav-link">Videos</a>
             <a href="#detections" class="list-group-item list-group-item-action nav-link">Detections</a>
             <a href="#tags" class="list-group-item list-group-item-action nav-link">Tags</a>
@@ -52,6 +56,9 @@ async function loadLayout(){
     loadFragment('#layout-footer','/src/layout/footer.html')
   ]);
   // 프래그먼트가 로드된 후 이벤트 발생 (필요 시 다른 스크립트에서 수신)
+  if(typeof window !== 'undefined'){
+    window.__fragmentsReady = true;
+  }
   document.dispatchEvent(new Event('fragments-loaded'));
 }
 

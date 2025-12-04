@@ -8,12 +8,6 @@
           <input type="number" min="1" step="1" id="setting-frame-interval" class="form-control" />
           <div class="form-text">Sampling interval in frames; enter an integer &ge; 1.</div>
         </div>
-        <div class="col-md-4 d-flex align-items-start">
-          <div class="form-check mt-3">
-            <input class="form-check-input" type="checkbox" id="setting-notification-enabled">
-            <label class="form-check-label" for="setting-notification-enabled">Enable notifications</label>
-          </div>
-        </div>
         <div class="col-12"><hr/></div>
         <div class="col-md-6">
           <label class="form-label">Notification option</label>
@@ -23,44 +17,34 @@
             <option value="always">Always</option>
           </select>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Notification threshold</label>
-          <input id="setting-notification-threshold" type="number" min="0" max="1" step="0.01" class="form-control" placeholder="e.g. 0.8" />
-          <div class="form-text">Minimum confidence (0-1) required to trigger a notification.</div>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Notification time limit (minutes)</label>
-          <input id="setting-notification-time-limit" type="number" min="0" step="1" class="form-control" placeholder="0 = no limit" />
-        </div>
-        <div class="col-md-6 d-flex align-items-center">
-          <button id="btn-open-personal-info" type="button" class="btn btn-outline-primary">Edit personal info</button>
+        <div class="col-md-6 d-flex align-items-center justify-content-end">
+          <button id="btn-save-analysis-settings" type="button" class="btn btn-primary">Save settings</button>
         </div>
         <div class="col-12 text-end"><small id="settings-save-status" class="text-muted"></small></div>
       </div>
     </form>
-    
-    <!-- Personal info modal -->
-    <div class="modal fade" id="personalInfoModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Personal Information</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <form id="personal-info-form">
-              <div class="mb-3"><label class="form-label">Name</label><input id="personal-name" class="form-control" /></div>
-              <div class="mb-3"><label class="form-label">Email</label><input id="personal-email" type="email" class="form-control" /></div>
-              <div class="mb-3"><label class="form-label">Date of birth</label><input id="personal-dob" type="date" class="form-control" /></div>
-              <hr />
-              <div class="mb-3"><label class="form-label">Change password</label><input id="personal-password" type="password" class="form-control" /></div>
-              <div class="mb-3"><label class="form-label">Confirm new password</label><input id="personal-password-confirm" type="password" class="form-control" /></div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button id="btn-save-personal-info" type="button" class="btn btn-primary">Save</button>
-          </div>
+  </div>
+
+  <div class="card mt-4 shadow-sm border-0">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-md-row align-items-md-center gap-2 mb-2">
+        <span class="badge rounded-pill text-bg-danger fw-semibold">Danger zone</span>
+        <h5 class="mb-0">회원탈퇴</h5>
+      </div>
+      <p class="text-muted small mb-3">
+        계정을 삭제하면 업로드한 영상, 탐지 이력, 분석 설정 등 모든 데이터가 영구적으로 제거됩니다. 작업을 되돌릴 수 없으니 주의하세요.
+      </p>
+      <div class="alert alert-warning py-2 small">
+        <strong>확인 단계:</strong> 아래 입력창에 <code>탈퇴</code>라고 적은 뒤 버튼을 클릭하면 탈퇴가 진행됩니다.
+      </div>
+      <div class="row g-3 align-items-center" id="settings-account-danger">
+        <div class="col-md-6">
+          <label for="delete-account-confirm" class="form-label small text-muted">확인 문구</label>
+          <input type="text" class="form-control" id="delete-account-confirm" placeholder="탈퇴 라고 입력하세요" />
+          <div class="form-text">대소문자 구분 없이 <code>탈퇴</code>라고 입력하면 됩니다.</div>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <button type="button" id="btn-delete-account" class="btn btn-outline-danger btn-lg">회원탈퇴</button>
         </div>
       </div>
     </div>

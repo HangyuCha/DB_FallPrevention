@@ -10,43 +10,12 @@
     </div>
 
     <div class="mt-3">
-      <h6 class="mb-2">Uploaded videos</h6>
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">Uploaded videos</h6>
+        <small class="text-muted">Need to edit or delete? Use the Search tab.</small>
+      </div>
       <div id="videos-list" class="row g-3">
         <!-- populated by JS as cards -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Upload / Edit Modal -->
-  <div class="modal fade" id="uploadVideoModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="uploadVideoModalTitle">Upload Video</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="upload-video-form">
-            <input type="hidden" id="upload-video-id" />
-            <div class="mb-3">
-              <label class="form-label">Choose file</label>
-              <input id="upload-video-file" type="file" accept="video/*" class="form-control" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Title (optional)</label>
-              <input id="upload-video-title" class="form-control" placeholder="Optional title" />
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Description (optional)</label>
-              <textarea id="upload-video-desc" class="form-control" rows="3"></textarea>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button id="btn-delete-video" class="btn btn-outline-danger me-auto d-none">Delete</button>
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button id="btn-save-video" class="btn btn-primary">Save</button>
-        </div>
       </div>
     </div>
   </div>
